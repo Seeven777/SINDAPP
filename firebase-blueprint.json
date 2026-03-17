@@ -1,0 +1,102 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Registered users of the system.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "phone": { "type": "string" },
+        "role": { "type": "string", "enum": ["gestao", "admin", "diretoria", "associado"] },
+        "status": { "type": "string", "enum": ["pending", "active", "rejected"] },
+        "cnpj": { "type": "string" },
+        "workplace": { "type": "string" },
+        "documentUrl": { "type": "string" },
+        "proofUrl": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "name", "email", "role", "status"]
+    },
+    "Benefit": {
+      "title": "Benefit",
+      "description": "Union benefits for members.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "requirements": { "type": "string" },
+        "category": { "type": "string" },
+        "externalLink": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "description", "category"]
+    },
+    "Announcement": {
+      "title": "Announcement",
+      "description": "Official union announcements.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "category": { "type": "string" },
+        "attachments": { "type": "array", "items": { "type": "string" } },
+        "publishedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "content", "category", "publishedAt"]
+    },
+    "News": {
+      "title": "News",
+      "description": "Union news feed.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "images": { "type": "array", "items": { "type": "string" } },
+        "externalLink": { "type": "string" },
+        "publishedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "content", "publishedAt"]
+    },
+    "DirectorEvent": {
+      "title": "DirectorEvent",
+      "description": "Private events for the board.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "time": { "type": "string" },
+        "location": { "type": "string" },
+        "description": { "type": "string" },
+        "participants": { "type": "array", "items": { "type": "string" } },
+        "attachments": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "date", "time", "location"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles and roles."
+    },
+    "/benefits/{benefitId}": {
+      "schema": "Benefit",
+      "description": "List of available benefits."
+    },
+    "/announcements/{announcementId}": {
+      "schema": "Announcement",
+      "description": "Official announcements."
+    },
+    "/news/{newsId}": {
+      "schema": "News",
+      "description": "Union news articles."
+    },
+    "/director_events/{eventId}": {
+      "schema": "DirectorEvent",
+      "description": "Private board events."
+    }
+  }
+}

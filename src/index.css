@@ -1,0 +1,96 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Outfit", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  
+  /* Primary Palette - Vibrant Orange */
+  --color-primary: var(--primary);
+  --color-primary-light: var(--primary-light);
+  --color-primary-dark: var(--primary-dark);
+  
+  /* Backgrounds */
+  --color-dark-bg: var(--bg-main);
+  --color-card-bg: var(--bg-card);
+  --color-glass-bg: var(--bg-glass);
+}
+
+:root {
+  --primary: #F27D26;
+  --primary-light: #FF9D52;
+  --primary-dark: #D46615;
+  
+  /* Dark Theme (Default) */
+  --bg-main: #0A0A0B;
+  --bg-card: #161618;
+  --bg-glass: rgba(22, 22, 24, 0.7);
+  --text-main: #FFFFFF;
+  --text-muted: rgba(255, 255, 255, 0.4);
+  --border-color: rgba(255, 255, 255, 0.05);
+
+  color-scheme: dark;
+}
+
+:root.light {
+  /* LIGHT THEME VARIABLES */
+  --bg-main: #F8F9FA;
+  --bg-card: #FFFFFF;
+  --bg-glass: rgba(255, 255, 255, 0.8);
+  --text-main: #111827;
+  --text-muted: rgba(17, 24, 39, 0.6);
+  --border-color: rgba(0, 0, 0, 0.1);
+  
+  color-scheme: light;
+}
+
+@layer base {
+  html, body {
+    background-color: var(--bg-main) !important;
+    color: var(--text-main) !important;
+    @apply antialiased transition-colors duration-300;
+  }
+}
+
+@layer components {
+  .glass-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    @apply shadow-[0_8px_32px_rgba(0,0,0,0.1)] rounded-[2rem] backdrop-blur-xl transition-all duration-300;
+  }
+
+  .glass-panel {
+    @apply bg-glass-bg border border-[var(--border-color)] backdrop-blur-lg shadow-2xl;
+  }
+  
+  .premium-gradient {
+    @apply bg-gradient-to-br from-[var(--primary)] via-[var(--primary-dark)] to-orange-900;
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-[var(--text-main)] via-[var(--text-main)] to-[var(--text-muted)];
+  }
+  
+  .nav-button {
+    @apply flex flex-col items-center gap-1 text-[10px] font-semibold transition-all duration-300 relative;
+  }
+  
+  .nav-button.active {
+    @apply text-primary scale-110;
+  }
+  
+  .nav-button:not(.active) {
+    @apply text-[var(--text-muted)] hover:text-primary transition-colors;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-white/10 rounded-full hover:bg-white/20 transition-colors;
+}
+

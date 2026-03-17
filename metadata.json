@@ -1,0 +1,5 @@
+{
+  "name": "Sindapp",
+  "description": "Sistema de gestão e comunicação para o sindicato do setor petshop.",
+  "requestFramePermissions": ["camera", "microphone", "geolocation"]
+}

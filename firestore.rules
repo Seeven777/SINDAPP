@@ -1,0 +1,148 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    // Collection: users
+    // Fields: uid, name, email, phone, role, status, cnpj, workplace, documentUrl, proofUrl, createdAt, updatedAt
+    //
+    // Collection: benefits
+    // Fields: title, description, requirements, category, externalLink, createdAt
+    //
+    // Collection: announcements
+    // Fields: title, content, category, attachments, publishedAt
+    //
+    // Collection: news
+    // Fields: title, content, images, externalLink, publishedAt
+    //
+    // Collection: director_events
+    // Fields: title, date, time, location, description, participants, attachments, createdAt
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function hasRole(role) {
+      return isAuthenticated() && getUserData().role == role;
+    }
+
+    function isGestao() {
+      return hasRole('gestao') || (request.auth.token.email == "gustavo13470@gmail.com" && request.auth.token.email_verified == true);
+    }
+
+    function isAdmin() {
+      return isGestao() || hasRole('admin');
+    }
+
+    function isDiretoria() {
+      return isAdmin() || hasRole('diretoria');
+    }
+
+    function isAssociado() {
+      return isAuthenticated() && getUserData().status == 'active';
+    }
+
+    // Validation Helpers
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidUrl(url) {
+      return url is string && (url.matches("^https://.*") || url.matches("^http://.*"));
+    }
+
+    // ===============================================================
+    // Collection Rules
+    // ===============================================================
+
+    // Users Collection
+    match /users/{userId} {
+      function isValidUser(data) {
+        return data.keys().hasAll(['uid', 'name', 'email', 'role', 'status']) &&
+               data.uid == userId &&
+               data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+               isValidEmail(data.email) &&
+               data.role in ['gestao', 'admin', 'diretoria', 'associado'] &&
+               data.status in ['pending', 'active', 'rejected'] &&
+               (!('phone' in data) || (data.phone is string && data.phone.size() < 20)) &&
+               (!('workplace' in data) || (data.workplace is string && data.workplace.size() < 100)) &&
+               (!('cnpj' in data) || (data.cnpj is string && data.cnpj.size() < 20));
+      }
+
+      allow read: if isOwner(userId) || isAdmin();
+      
+      allow create: if isAuthenticated() && 
+                    isValidUser(request.resource.data) &&
+                    request.resource.data.uid == request.auth.uid &&
+                    (
+                      (request.resource.data.role == 'associado' && request.resource.data.status == 'pending') ||
+                      (request.auth.token.email == "gustavo13470@gmail.com" && request.auth.token.email_verified == true && request.resource.data.role == 'gestao' && request.resource.data.status == 'active')
+                    );
+
+      allow update: if isAuthenticated() && (
+        (isOwner(userId) && 
+         request.resource.data.role == resource.data.role && 
+         request.resource.data.status == resource.data.status &&
+         isValidUser(request.resource.data)) ||
+        isAdmin()
+      );
+
+      allow delete: if isGestao();
+    }
+
+    // Benefits Collection
+    match /benefits/{benefitId} {
+      function isValidBenefit(data) {
+        return data.title is string && data.title.size() < 100 &&
+               data.description is string && data.description.size() < 1000 &&
+               data.category is string && data.category.size() < 50;
+      }
+      allow read: if isAssociado() || isAdmin();
+      allow write: if isAdmin() && isValidBenefit(request.resource.data);
+    }
+
+    // Announcements Collection
+    match /announcements/{announcementId} {
+      function isValidAnnouncement(data) {
+        return data.title is string && data.title.size() < 100 &&
+               data.content is string && data.content.size() < 5000;
+      }
+      allow read: if isAssociado() || isAdmin();
+      allow write: if isAdmin() && isValidAnnouncement(request.resource.data);
+    }
+
+    // News Collection
+    match /news/{newsId} {
+      function isValidNews(data) {
+        return data.title is string && data.title.size() < 100 &&
+               data.content is string && data.content.size() < 5000;
+      }
+      allow read: if isAssociado() || isAdmin();
+      allow write: if isAdmin() && isValidNews(request.resource.data);
+    }
+
+    // Director Events Collection
+    match /director_events/{eventId} {
+      allow read: if isDiretoria();
+      allow write: if isDiretoria();
+    }
+
+    // Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
